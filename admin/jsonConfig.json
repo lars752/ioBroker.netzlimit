@@ -1,0 +1,378 @@
+{
+  "type": "tabs",
+  "i18n": false,
+  "items": {
+    "main": {
+      "type": "panel",
+      "label": {
+        "de": "Einstellungen",
+        "en": "Settings"
+      },
+      "items": {
+        "_hint": {
+          "type": "staticText",
+          "text": {
+            "de": "Der Adapter reduziert nur Sollwerte (er erhöht sie nie). Gruppen sind zunächst inaktiv; mit „Testlauf“ wird nur protokolliert, nichts geschrieben.",
+            "en": "The adapter only reduces setpoints (never raises them). Groups are inactive at first; “Dry run” only logs and writes nothing."
+          },
+          "newLine": true,
+          "sm": 12
+        },
+        "basis": {
+          "type": "text",
+          "label": {
+            "de": "Basis-Pfad der Wechselrichter-Gruppen",
+            "en": "Base path of inverter groups"
+          },
+          "help": {
+            "de": "Struktur: <Basis>.<Gruppe>.WR<x>.<Sollwert>",
+            "en": "Structure: <base>.<group>.WR<x>.<setpoint>"
+          },
+          "sm": 12,
+          "md": 6,
+          "newLine": true
+        },
+        "setpointState": {
+          "type": "text",
+          "label": {
+            "de": "Sollwert-Datenpunkt je Wechselrichter",
+            "en": "Setpoint state per inverter"
+          },
+          "help": {
+            "de": "beschreibbar, z. B. Power",
+            "en": "writable, e.g. Power"
+          },
+          "sm": 12,
+          "md": 3
+        },
+        "actualState": {
+          "type": "text",
+          "label": {
+            "de": "Istwert-Datenpunkt je Wechselrichter",
+            "en": "Actual value state per inverter"
+          },
+          "help": {
+            "de": "z. B. InvOutputWatts",
+            "en": "e.g. InvOutputWatts"
+          },
+          "sm": 12,
+          "md": 3
+        },
+        "scale": {
+          "type": "number",
+          "label": {
+            "de": "Skalierung Datenpunktwert → Watt",
+            "en": "Scale data point value → watt"
+          },
+          "help": {
+            "de": "gilt für Soll- und Istwert",
+            "en": "applies to setpoint and actual value"
+          },
+          "min": 1e-06,
+          "max": 1000000,
+          "sm": 12,
+          "md": 3,
+          "newLine": true
+        },
+        "socId": {
+          "type": "text",
+          "label": {
+            "de": "Datenpunkt des Akku-SoC",
+            "en": "Battery SoC data point"
+          },
+          "help": {
+            "de": "z. B. growatt-bms.0.SoC",
+            "en": "e.g. growatt-bms.0.SoC"
+          },
+          "sm": 12,
+          "md": 6
+        },
+        "socStart": {
+          "type": "number",
+          "label": {
+            "de": "Limit für vollen Akku ab SoC (%)",
+            "en": "Full-battery limit from SoC (%)"
+          },
+          "help": "",
+          "min": 1,
+          "max": 100,
+          "sm": 12,
+          "md": 3,
+          "newLine": true
+        },
+        "socEnd": {
+          "type": "number",
+          "label": {
+            "de": "Zurück zum normalen Limit unter SoC (%)",
+            "en": "Back to normal limit below SoC (%)"
+          },
+          "help": {
+            "de": "muss kleiner als der Startwert sein",
+            "en": "must be below the start value"
+          },
+          "min": 0,
+          "max": 99,
+          "sm": 12,
+          "md": 3
+        },
+        "meterBase": {
+          "type": "text",
+          "label": {
+            "de": "Basis-Pfad der Zähler",
+            "en": "Base path of meters"
+          },
+          "help": {
+            "de": "z. B. shelly-gruppen.0",
+            "en": "e.g. shelly-gruppen.0"
+          },
+          "sm": 12,
+          "md": 4,
+          "newLine": true
+        },
+        "meterPowerState": {
+          "type": "text",
+          "label": {
+            "de": "Leistungs-Datenpunkt unterhalb des Zählers",
+            "en": "Power state below the meter"
+          },
+          "help": {
+            "de": "Bezug +, Einspeisung −; z. B. info.Total_Power",
+            "en": "import +, feed-in −; e.g. info.Total_Power"
+          },
+          "sm": 12,
+          "md": 4
+        },
+        "meterOnlineState": {
+          "type": "text",
+          "label": {
+            "de": "Online-Datenpunkt unterhalb des Zählers (optional)",
+            "en": "Online state below the meter (optional)"
+          },
+          "help": {
+            "de": "leer = nicht prüfen",
+            "en": "empty = not checked"
+          },
+          "sm": 12,
+          "md": 4
+        },
+        "meterMaxAgeS": {
+          "type": "number",
+          "label": {
+            "de": "Max. Alter des Zählerwerts (s)",
+            "en": "Max. age of meter value (s)"
+          },
+          "help": {
+            "de": "0 = nicht prüfen; empfohlen 60–120",
+            "en": "0 = not checked; 60–120 recommended"
+          },
+          "min": 0,
+          "max": 3600,
+          "sm": 12,
+          "md": 3,
+          "newLine": true
+        },
+        "deadbandW": {
+          "type": "number",
+          "label": {
+            "de": "Totband (W)",
+            "en": "Dead band (W)"
+          },
+          "help": {
+            "de": "Überschuss, ab dem eingegriffen wird",
+            "en": "excess above which the adapter acts"
+          },
+          "min": 0,
+          "max": 1000,
+          "sm": 12,
+          "md": 3
+        },
+        "intervalMs": {
+          "type": "number",
+          "label": {
+            "de": "Regeltakt (ms)",
+            "en": "Control interval (ms)"
+          },
+          "help": {
+            "de": "Mindestabstand zwischen zwei Eingriffen je Gruppe",
+            "en": "minimum time between two interventions per group"
+          },
+          "min": 500,
+          "max": 60000,
+          "sm": 12,
+          "md": 3
+        },
+        "dryRun": {
+          "type": "checkbox",
+          "label": {
+            "de": "Testlauf (nur protokollieren, keine Sollwerte schreiben)",
+            "en": "Dry run (log only, do not write setpoints)"
+          },
+          "sm": 12,
+          "md": 3
+        },
+        "_discoverBtn": {
+          "type": "sendTo",
+          "command": "discoverGroups",
+          "jsonData": "{\"config\": ${JSON.stringify(data)}}",
+          "useNative": true,
+          "variant": "outlined",
+          "label": {
+            "de": "Gruppen unter dem Basis-Pfad einlesen",
+            "en": "Read groups below the base path"
+          },
+          "tooltip": {
+            "de": "Ergänzt die Tabelle um gefundene Gruppen (inaktiv). Die Instanz muss laufen.",
+            "en": "Adds found groups to the table (inactive). The instance must be running."
+          },
+          "newLine": true,
+          "sm": 12,
+          "md": 6
+        },
+        "groups": {
+          "type": "table",
+          "label": {
+            "de": "Gruppen",
+            "en": "Groups"
+          },
+          "newLine": true,
+          "sm": 12,
+          "items": [
+            {
+              "type": "text",
+              "attr": "group",
+              "title": {
+                "de": "Gruppe",
+                "en": "Group"
+              },
+              "width": "16%",
+              "sort": true
+            },
+            {
+              "type": "checkbox",
+              "attr": "active",
+              "title": {
+                "de": "Aktiv",
+                "en": "Active"
+              },
+              "width": "7%",
+              "default": false
+            },
+            {
+              "type": "number",
+              "attr": "limit",
+              "title": {
+                "de": "Limit (W)",
+                "en": "Limit (W)"
+              },
+              "width": "11%",
+              "default": 800
+            },
+            {
+              "type": "number",
+              "attr": "limitFull",
+              "title": {
+                "de": "Limit Akku voll (W)",
+                "en": "Limit full (W)"
+              },
+              "width": "13%",
+              "default": 300
+            },
+            {
+              "type": "text",
+              "attr": "meter",
+              "title": {
+                "de": "Zähler (Ordner)",
+                "en": "Meter (folder)"
+              },
+              "width": "16%"
+            },
+            {
+              "type": "checkbox",
+              "attr": "invert",
+              "title": {
+                "de": "Zähler invertieren",
+                "en": "Invert meter"
+              },
+              "width": "9%",
+              "default": false
+            },
+            {
+              "type": "text",
+              "attr": "inverters",
+              "title": {
+                "de": "Wechselrichter (leer = alle)",
+                "en": "Inverters (empty = all)"
+              },
+              "width": "28%"
+            }
+          ]
+        }
+      }
+    },
+    "backup": {
+      "type": "panel",
+      "label": {
+        "de": "Import / Export",
+        "en": "Import / Export"
+      },
+      "items": {
+        "_info": {
+          "type": "staticText",
+          "text": {
+            "de": "Die Konfiguration lässt sich als JSON sichern, auf eine andere Instanz übertragen oder wiederherstellen. Die Instanz muss dafür laufen.",
+            "en": "The configuration can be saved as JSON, transferred to another instance or restored. The instance must be running."
+          },
+          "newLine": true,
+          "sm": 12
+        },
+        "_exportBtn": {
+          "type": "sendTo",
+          "command": "exportConfig",
+          "jsonData": "{\"config\": ${JSON.stringify(data)}}",
+          "useNative": true,
+          "variant": "outlined",
+          "label": {
+            "de": "Konfiguration als JSON exportieren",
+            "en": "Export configuration as JSON"
+          },
+          "tooltip": {
+            "de": "Schreibt die aktuelle Konfiguration (auch ungespeicherte Änderungen) in das Textfeld",
+            "en": "Writes the current configuration (including unsaved changes) into the text field"
+          },
+          "newLine": true,
+          "sm": 12,
+          "md": 6
+        },
+        "_importBtn": {
+          "type": "sendTo",
+          "command": "importConfig",
+          "jsonData": "{\"json\": ${JSON.stringify(data.configJson || \"\")}}",
+          "useNative": true,
+          "variant": "contained",
+          "label": {
+            "de": "JSON aus dem Textfeld importieren",
+            "en": "Import JSON from the text field"
+          },
+          "tooltip": {
+            "de": "Übernimmt die Konfiguration in das Formular; danach „Speichern und schließen“ drücken",
+            "en": "Applies the configuration to the form; then press “Save and close”"
+          },
+          "sm": 12,
+          "md": 6
+        },
+        "configJson": {
+          "type": "text",
+          "label": {
+            "de": "Konfiguration (JSON): zum Sichern kopieren, zum Import einfügen",
+            "en": "Configuration (JSON): copy to back up, paste to import"
+          },
+          "minRows": 12,
+          "maxRows": 28,
+          "copyToClipboard": true,
+          "newLine": true,
+          "sm": 12
+        }
+      }
+    }
+  }
+}

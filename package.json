@@ -1,0 +1,43 @@
+{
+  "name": "iobroker.netzlimit",
+  "version": "0.1.0",
+  "description": "Begrenzt die gemessene Netzeinspeisung je Gruppe SoC-abhängig, indem die Sollwerte der Wechselrichter reduziert werden",
+  "author": "Lars",
+  "license": "MIT",
+  "homepage": "https://github.com/lars752/ioBroker.netzlimit",
+  "keywords": [
+    "ioBroker",
+    "netzlimit",
+    "einspeisung",
+    "pv",
+    "feed-in",
+    "limit",
+    "ecoflow",
+    "shelly"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lars752/ioBroker.netzlimit.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@iobroker/adapter-core": "^3.2.3"
+  },
+  "main": "main.js",
+  "files": [
+    "admin/",
+    "lib/",
+    "main.js",
+    "io-package.json",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "bugs": {
+    "url": "https://github.com/lars752/ioBroker.netzlimit/issues"
+  },
+  "readmeFilename": "README.md"
+}

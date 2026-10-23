@@ -1,0 +1,141 @@
+{
+  "common": {
+    "name": "netzlimit",
+    "version": "0.1.0",
+    "news": {
+      "0.1.0": {
+        "en": "Initial release: SoC-dependent feed-in limit per group, group discovery, JSON import/export",
+        "de": "Erstveröffentlichung: SoC-abhängiges Einspeiselimit je Gruppe, Gruppensuche, JSON-Import/-Export"
+      }
+    },
+    "titleLang": {
+      "en": "Grid feed-in limit",
+      "de": "Netzlimit"
+    },
+    "desc": {
+      "en": "Limits the grid feed-in measured per group by reducing inverter setpoints; stricter limit when the battery is full",
+      "de": "Begrenzt die je Gruppe gemessene Netzeinspeisung durch Reduzieren der Wechselrichter-Sollwerte; strengeres Limit bei vollem Akku"
+    },
+    "authors": [
+      "Lars"
+    ],
+    "keywords": [
+      "feed-in",
+      "limit",
+      "pv",
+      "inverter"
+    ],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "main": "main.js",
+    "icon": "netzlimit.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/lars752/ioBroker.netzlimit/main/admin/netzlimit.png",
+    "readme": "https://github.com/lars752/ioBroker.netzlimit/blob/main/README.md",
+    "loglevel": "info",
+    "mode": "daemon",
+    "type": "energy",
+    "compact": false,
+    "connectionType": "local",
+    "dataSource": "push",
+    "messagebox": true,
+    "supportedMessages": {
+      "custom": true
+    },
+    "adminUI": {
+      "config": "json"
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=5.0.19"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=6.12.2"
+      }
+    ]
+  },
+  "native": {
+    "basis": "0_userdata.0.Wechselrichter",
+    "setpointState": "Power",
+    "actualState": "InvOutputWatts",
+    "scale": 1,
+    "socId": "growatt-bms.0.SoC",
+    "socStart": 90,
+    "socEnd": 85,
+    "meterBase": "shelly-gruppen.0",
+    "meterPowerState": "info.Total_Power",
+    "meterOnlineState": "",
+    "meterMaxAgeS": 120,
+    "deadbandW": 15,
+    "intervalMs": 3000,
+    "dryRun": false,
+    "groups": [],
+    "configJson": ""
+  },
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "Regelung betriebsbereit (SoC und Zähler aller aktiven Gruppen gültig)",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "Aktiv",
+      "type": "state",
+      "common": {
+        "role": "switch",
+        "name": "Netzlimit aktiv (Hauptschalter)",
+        "type": "boolean",
+        "read": true,
+        "write": true,
+        "def": true
+      },
+      "native": {}
+    },
+    {
+      "_id": "Akku_Voll",
+      "type": "state",
+      "common": {
+        "role": "indicator",
+        "name": "Limit für vollen Akku gilt",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    },
+    {
+      "_id": "SoC",
+      "type": "state",
+      "common": {
+        "role": "value.battery",
+        "name": "Akku-SoC (gelesen)",
+        "type": "number",
+        "unit": "%",
+        "read": true,
+        "write": false,
+        "def": 0
+      },
+      "native": {}
+    }
+  ]
+}
