@@ -1,11 +1,11 @@
 {
   "common": {
     "name": "netzlimit",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "news": {
-      "0.1.0": {
-        "en": "Initial release: SoC-dependent feed-in limit per group, group discovery, JSON import/export",
-        "de": "Erstveröffentlichung: SoC-abhängiges Einspeiselimit je Gruppe, Gruppensuche, JSON-Import/-Export"
+      "1.0.0": {
+        "en": "Initial release",
+        "de": "Erstveröffentlichung"
       }
     },
     "titleLang": {
