@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "netzlimit",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "news": {
+      "1.0.5": {
+        "en": "meterOnlineState now uses object picker",
+        "de": "meterOnlineState jetzt mit Object-Picker"
+      },
       "1.0.4": {
         "en": "meterBase and meterPowerState now use object picker",
         "de": "meterBase und meterPowerState jetzt mit Object-Picker"

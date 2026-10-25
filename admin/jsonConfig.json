@@ -146,7 +146,7 @@
           "md": 4
         },
         "meterOnlineState": {
-          "type": "text",
+          "type": "objectId",
           "label": {
             "de": "Online-Datenpunkt unterhalb des Zählers (optional)",
             "en": "Online state below the meter (optional)"
@@ -155,6 +155,7 @@
             "de": "leer = nicht prüfen",
             "en": "empty = not checked"
           },
+          "types": ["state"],
           "sm": 12,
           "md": 4
         },
