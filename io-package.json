@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "netzlimit",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "news": {
+      "1.0.3": {
+        "en": "Basis path now uses object picker instead of text field",
+        "de": "Basis-Pfad jetzt mit Object-Picker statt Textfeld"
+      },
       "1.0.2": {
         "en": "New: configurable switch-on delay (excessDelayS) – adapter waits until excess feed-in persists for the configured duration before reducing setpoints",
         "de": "Neu: konfigurierbare Einschaltverzögerung (excessDelayS) – Adapter wartet, bis Überschuss-Einspeisung die parametrisierte Dauer anhält, bevor Sollwerte reduziert werden"
