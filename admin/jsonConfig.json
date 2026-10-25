@@ -117,7 +117,7 @@
           "md": 3
         },
         "meterBase": {
-          "type": "text",
+          "type": "objectId",
           "label": {
             "de": "Basis-Pfad der Zähler",
             "en": "Base path of meters"
@@ -126,12 +126,13 @@
             "de": "z. B. shelly-gruppen.0",
             "en": "e.g. shelly-gruppen.0"
           },
+          "types": ["channel", "folder", "device"],
           "sm": 12,
           "md": 4,
           "newLine": true
         },
         "meterPowerState": {
-          "type": "text",
+          "type": "objectId",
           "label": {
             "de": "Leistungs-Datenpunkt unterhalb des Zählers",
             "en": "Power state below the meter"
@@ -140,6 +141,7 @@
             "de": "Bezug +, Einspeisung −; z. B. info.Total_Power",
             "en": "import +, feed-in −; e.g. info.Total_Power"
           },
+          "types": ["state"],
           "sm": 12,
           "md": 4
         },

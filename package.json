@@ -1,6 +1,6 @@
 {
   "name": "iobroker.netzlimit",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Begrenzt die gemessene Netzeinspeisung je Gruppe SoC-abhängig, indem die Sollwerte der Wechselrichter reduziert werden",
   "author": "Lars",
   "license": "MIT",

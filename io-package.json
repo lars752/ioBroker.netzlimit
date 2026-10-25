@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "netzlimit",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "news": {
+      "1.0.4": {
+        "en": "meterBase and meterPowerState now use object picker",
+        "de": "meterBase und meterPowerState jetzt mit Object-Picker"
+      },
       "1.0.3": {
         "en": "Basis path now uses object picker instead of text field",
         "de": "Basis-Pfad jetzt mit Object-Picker statt Textfeld"
