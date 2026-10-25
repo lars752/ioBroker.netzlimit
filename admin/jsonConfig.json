@@ -186,6 +186,21 @@
           "sm": 12,
           "md": 3
         },
+        "excessDelayS": {
+          "type": "number",
+          "label": {
+            "de": "Einschaltverzögerung (s)",
+            "en": "Switch-on delay (s)"
+          },
+          "help": {
+            "de": "Überschuss muss so viele Sekunden ununterbrochen anhalten, bevor der Adapter eingreift (0 = sofort)",
+            "en": "excess must persist for this many seconds before the adapter acts (0 = immediately)"
+          },
+          "min": 0,
+          "max": 3600,
+          "sm": 12,
+          "md": 3
+        },
         "intervalMs": {
           "type": "number",
           "label": {

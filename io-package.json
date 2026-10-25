@@ -1,8 +1,16 @@
 {
   "common": {
     "name": "netzlimit",
-    "version": "1.0.0",
+    "version": "1.0.2",
     "news": {
+      "1.0.2": {
+        "en": "New: configurable switch-on delay (excessDelayS) – adapter waits until excess feed-in persists for the configured duration before reducing setpoints",
+        "de": "Neu: konfigurierbare Einschaltverzögerung (excessDelayS) – Adapter wartet, bis Überschuss-Einspeisung die parametrisierte Dauer anhält, bevor Sollwerte reduziert werden"
+      },
+      "1.0.1": {
+        "en": "Fix: release inverter setpoints when feed-in drops below limit, preventing race condition with zero-feed-in adapter",
+        "de": "Fix: Sollwerte freigeben wenn Einspeisung unter Limit fällt – Race Condition mit Nulleinspeisung-Adapter behoben"
+      },
       "1.0.0": {
         "en": "Initial release",
         "de": "Erstveröffentlichung"
@@ -69,6 +77,7 @@
     "meterOnlineState": "",
     "meterMaxAgeS": 120,
     "deadbandW": 15,
+    "excessDelayS": 30,
     "intervalMs": 3000,
     "dryRun": false,
     "groups": [],
