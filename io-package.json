@@ -1,8 +1,12 @@
 {
   "common": {
     "name": "netzlimit",
-    "version": "1.0.5",
+    "version": "1.1.0",
     "news": {
+      "1.1.0": {
+        "en": "New (optional): take battery chargers into account – free charging power of charging devices is subtracted from the excess before inverters are curtailed; chargers configurable dynamically",
+        "de": "Neu (optional): Akku-Ladegeräte berücksichtigen – freie Ladeleistung ladender Geräte wird vom Überschuss abgezogen, bevor Wechselrichter gedrosselt werden; Ladegeräte dynamisch konfigurierbar"
+      },
       "1.0.5": {
         "en": "meterOnlineState now uses object picker",
         "de": "meterOnlineState jetzt mit Object-Picker"
@@ -92,7 +96,12 @@
     "excessDelayS": 30,
     "intervalMs": 3000,
     "dryRun": false,
+    "chargersEnabled": false,
+    "chargerMinW": 20,
+    "chargerWaitS": 120,
+    "chargerMaxAgeS": 120,
     "groups": [],
+    "chargers": [],
     "configJson": ""
   },
   "objects": [],

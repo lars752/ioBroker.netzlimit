@@ -28,7 +28,11 @@
             "de": "Struktur: <Basis>.<Gruppe>.WR<x>.<Sollwert>",
             "en": "Structure: <base>.<group>.WR<x>.<setpoint>"
           },
-          "types": ["channel", "folder", "device"],
+          "types": [
+            "channel",
+            "folder",
+            "device"
+          ],
           "sm": 12,
           "md": 6,
           "newLine": true
@@ -126,7 +130,11 @@
             "de": "z. B. shelly-gruppen.0",
             "en": "e.g. shelly-gruppen.0"
           },
-          "types": ["channel", "folder", "device"],
+          "types": [
+            "channel",
+            "folder",
+            "device"
+          ],
           "sm": 12,
           "md": 4,
           "newLine": true
@@ -141,7 +149,9 @@
             "de": "Bezug +, Einspeisung −; z. B. info.Total_Power",
             "en": "import +, feed-in −; e.g. info.Total_Power"
           },
-          "types": ["state"],
+          "types": [
+            "state"
+          ],
           "sm": 12,
           "md": 4
         },
@@ -155,7 +165,9 @@
             "de": "leer = nicht prüfen",
             "en": "empty = not checked"
           },
-          "types": ["state"],
+          "types": [
+            "state"
+          ],
           "sm": 12,
           "md": 4
         },
@@ -323,6 +335,171 @@
                 "en": "Inverters (empty = all)"
               },
               "width": "28%"
+            }
+          ]
+        }
+      }
+    },
+    "chargers": {
+      "type": "panel",
+      "label": {
+        "de": "Ladegeräte",
+        "en": "Chargers"
+      },
+      "items": {
+        "_info": {
+          "type": "staticText",
+          "text": {
+            "de": "Optional: Akku-Ladegeräte (z. B. Trucki2MeanWell), die Überschuss aufnehmen. Solange ein Ladegerät lädt und noch Luft bis zu seiner Max. Ladeleistung hat, zieht das Netzlimit diese freie Leistung vom Überschuss ab und drosselt die Wechselrichter nur für den Rest. Hält der Überschuss länger als die Max. Wartezeit an, wird die Reserve ignoriert.",
+            "en": "Optional: battery chargers (e.g. Trucki2MeanWell) that absorb surplus. While a charger is charging and below its max. power, the free charging power is subtracted from the excess and only the remainder is curtailed. If the excess persists longer than the max. wait time, the reserve is ignored."
+          },
+          "newLine": true,
+          "sm": 12
+        },
+        "chargersEnabled": {
+          "type": "checkbox",
+          "label": {
+            "de": "Ladeverhalten der Ladegeräte berücksichtigen",
+            "en": "Take charger behaviour into account"
+          },
+          "newLine": true,
+          "sm": 12
+        },
+        "chargerMinW": {
+          "type": "number",
+          "label": {
+            "de": "Mindest-Ladeleistung (W)",
+            "en": "Minimum charging power (W)"
+          },
+          "help": {
+            "de": "erst ab diesem Wert gilt ein Ladegerät als ladend",
+            "en": "a charger counts as charging from this value"
+          },
+          "min": 0,
+          "max": 10000,
+          "hidden": "!data.chargersEnabled",
+          "sm": 12,
+          "md": 4,
+          "newLine": true
+        },
+        "chargerWaitS": {
+          "type": "number",
+          "label": {
+            "de": "Max. Wartezeit auf Ladegeräte (s)",
+            "en": "Max. wait for chargers (s)"
+          },
+          "help": {
+            "de": "so lange wird die Ladereserve angerechnet; 0 = unbegrenzt",
+            "en": "reserve is credited this long; 0 = unlimited"
+          },
+          "min": 0,
+          "max": 3600,
+          "hidden": "!data.chargersEnabled",
+          "sm": 12,
+          "md": 4
+        },
+        "chargerMaxAgeS": {
+          "type": "number",
+          "label": {
+            "de": "Max. Alter des Ladewerts (s)",
+            "en": "Max. age of charging value (s)"
+          },
+          "help": {
+            "de": "ältere Werte zählen nicht; 0 = nicht prüfen",
+            "en": "older values are ignored; 0 = not checked"
+          },
+          "min": 0,
+          "max": 3600,
+          "hidden": "!data.chargersEnabled",
+          "sm": 12,
+          "md": 4
+        },
+        "chargers": {
+          "type": "table",
+          "label": {
+            "de": "Ladegeräte",
+            "en": "Chargers"
+          },
+          "hidden": "!data.chargersEnabled",
+          "newLine": true,
+          "sm": 12,
+          "items": [
+            {
+              "type": "text",
+              "attr": "name",
+              "title": {
+                "de": "Name",
+                "en": "Name"
+              },
+              "width": "12%",
+              "sort": true
+            },
+            {
+              "type": "checkbox",
+              "attr": "active",
+              "title": {
+                "de": "Aktiv",
+                "en": "Active"
+              },
+              "width": "6%",
+              "default": false
+            },
+            {
+              "type": "text",
+              "attr": "group",
+              "title": {
+                "de": "Gruppe",
+                "en": "Group"
+              },
+              "width": "12%"
+            },
+            {
+              "type": "objectId",
+              "attr": "powerId",
+              "title": {
+                "de": "Ladeleistung (Datenpunkt)",
+                "en": "Charging power (state)"
+              },
+              "width": "24%"
+            },
+            {
+              "type": "number",
+              "attr": "scale",
+              "title": {
+                "de": "Skalierung",
+                "en": "Scale"
+              },
+              "width": "8%",
+              "default": 1
+            },
+            {
+              "type": "checkbox",
+              "attr": "invert",
+              "title": {
+                "de": "Invertieren",
+                "en": "Invert"
+              },
+              "width": "7%",
+              "default": false
+            },
+            {
+              "type": "number",
+              "attr": "maxW",
+              "title": {
+                "de": "Max. Ladeleistung (W)",
+                "en": "Max. power (W)"
+              },
+              "width": "11%",
+              "default": 600
+            },
+            {
+              "type": "objectId",
+              "attr": "onlineId",
+              "title": {
+                "de": "Online (optional)",
+                "en": "Online (optional)"
+              },
+              "width": "20%"
             }
           ]
         }

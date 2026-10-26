@@ -23,7 +23,7 @@ function mk(over = {}, groupOver = {}) {
     const pub = {};
     const put = (id, val, ts) => states.set(id, { val, ts: ts === undefined ? t.now : ts });
     const { cfg, errors } = normalizeConfig({
-        basis: BASE, meterBase: 'sh.0', socId: 'bms.0.SoC', meterMaxAgeS: 0,
+        basis: BASE, meterBase: 'sh.0', socId: 'bms.0.SoC', meterMaxAgeS: 0, excessDelayS: 0,
         groups: [{ group: 'g1', active: true, limit: 800, limitFull: 300, meter: 'g1', ...groupOver }],
         ...over,
     }, silent);
@@ -156,6 +156,23 @@ function mk(over = {}, groupOver = {}) {
         assert.deepStrictEqual(writes.map((w) => w[0]), [SET('g1', 'WR2')]);
         assert.ok(!core.watchedIds().has(SET('g1', 'WR1')));
     });
+    await test('Regelung: Einschaltverzögerung', () => {
+        const { core, writes, put, t } = mk({ excessDelayS: 30 });
+        core.regulate();
+        assert.strictEqual(writes.length, 0);
+        t.now += 29_000; put(METER('g1'), -1000); core.regulate();
+        assert.strictEqual(writes.length, 0);
+        t.now += 2_000; put(METER('g1'), -1000); core.regulate();
+        assert.strictEqual(writes.length, 2);
+    });
+    await test('Regelung: Freigabe nach Reduktion', () => {
+        const { core, writes, put, t } = mk();
+        core.regulate();
+        assert.strictEqual(writes.length, 2);
+        t.now += 3001; put(METER('g1'), -500); put(SET('g1', 'WR1'), 480); put(SET('g1', 'WR2'), 320); core.regulate();
+        assert.deepStrictEqual(writes.slice(2).map((w) => w[1]), [3200, 3200]);
+        assert.strictEqual(core.capped.g1, false);
+    });
     await test('SoC-Hysterese und Limitwechsel', () => {
         const { core, put, pub } = mk();
         put('bms.0.SoC', 91); core.evaluate();
@@ -195,8 +212,105 @@ function mk(over = {}, groupOver = {}) {
         assert.ok(core.isMeterId(METER('g1')) && !core.isMeterId('x'));
     });
 
+    // ---- Ladegeräte ----
+    const CH = 'mqtt.0.T2MG-w1.ACSETPOINT';
+    const mkc = (over = {}, chOver = {}) => mk({ chargersEnabled: true, chargerMinW: 20, chargerWaitS: 120, chargerMaxAgeS: 0,
+        chargers: [{ name: 'trucki1', active: true, group: 'g1', powerId: CH, maxW: 600, ...chOver }], ...over });
+
+    await test('Ladegeräte: Konfiguration prüfen', () => {
+        logs.warn.length = 0;
+        const r = normalizeConfig({ chargersEnabled: true, groups: [{ group: 'g1' }], chargers: [
+            { name: 't1', active: true, group: 'g1', powerId: CH, maxW: 500 },
+            { name: 't1', group: 'g1', powerId: CH },          // doppelt
+            { name: 't2', group: 'gx', powerId: CH },          // Gruppe fehlt
+            { name: 't3', group: 'g1', powerId: 'kein id' },   // ungültige ID
+            { name: 't4', group: 'g1', powerId: CH, maxW: 0 }, // maxW
+            { name: '', group: '', powerId: '' },              // leer, still
+            { name: 't5', group: 'g1', powerId: CH, maxW: '', scale: '' },
+        ] }, log);
+        assert.deepStrictEqual(r.errors, []);
+        assert.deepStrictEqual(r.cfg.chargers.map((c) => c.name), ['t1', 't5']);
+        assert.strictEqual(r.cfg.chargers[1].maxW, 600);
+        assert.strictEqual(r.cfg.chargers[1].scale, 1);
+        assert.strictEqual(logs.warn.length, 4);
+        assert.strictEqual(normalizeConfig({ chargerWaitS: -1 }, silent).errors.length, 1);
+    });
+    await test('Ladegeräte: ausgeschaltet -> keine Wirkung', () => {
+        const { core, writes, put } = mkc({ chargersEnabled: false });
+        put(CH, 200); core.regulate();
+        assert.strictEqual(writes.length, 2);
+        assert.ok(!core.watchedIds().has(CH));
+    });
+    await test('Ladegeräte: freie Ladereserve verhindert Drosselung', () => {
+        const { core, writes, put, pub } = mkc();
+        put(CH, 200); // Reserve 400 W >= Überschuss 200 W
+        core.refresh(); core.regulate();
+        assert.strictEqual(writes.length, 0);
+        assert.strictEqual(pub['g1.Ladereserve_W'], 400);
+        assert.strictEqual(pub['g1.Ladeleistung_W'], 200);
+        assert.strictEqual(pub['Ladegeraete.trucki1.Laedt'], true);
+        assert.ok(core.watchedIds().has(CH) && core.isChargerId(CH));
+    });
+    await test('Ladegeräte: nur der Rest über der Reserve wird gedrosselt', () => {
+        const { core, writes, put } = mkc();
+        put(METER('g1'), -1500); put(CH, 400); // Überschuss 700, Reserve 200 -> Reduktion 500
+        core.regulate();
+        assert.deepStrictEqual(writes, [[SET('g1', 'WR1'), 300], [SET('g1', 'WR2'), 200]]);
+    });
+    await test('Ladegeräte: nicht ladend, offline, veraltet oder am Maximum -> keine Reserve', () => {
+        const a = mkc(); a.put(CH, 10); a.core.regulate();            // unter Mindestleistung
+        assert.strictEqual(a.writes.length, 2);
+        const b = mkc({}, { onlineId: 'mqtt.0.T2MG-w1.online' }); b.put(CH, 200); b.put('mqtt.0.T2MG-w1.online', false); b.core.regulate();
+        assert.strictEqual(b.writes.length, 2);
+        const c = mkc({ chargerMaxAgeS: 30 }); c.put(CH, 200, c.t.now - 31_000); c.core.regulate();
+        assert.strictEqual(c.writes.length, 2);
+        const d = mkc(); d.put(CH, 600); d.core.regulate();           // keine Luft mehr
+        assert.strictEqual(d.writes.length, 2);
+        const e = mkc({}, { active: false }); e.put(CH, 200); e.core.regulate();
+        assert.strictEqual(e.writes.length, 2);
+    });
+    await test('Ladegeräte: Skalierung und Invertierung', () => {
+        const a = mkc({}, { scale: 0.1 }); a.put(CH, 2000); a.core.regulate(); // 200 W
+        assert.strictEqual(a.writes.length, 0);
+        const b = mkc({}, { invert: true }); b.put(CH, -200); b.core.regulate();
+        assert.strictEqual(b.writes.length, 0);
+    });
+    await test('Ladegeräte: Reserve verfällt nach der Max. Wartezeit', () => {
+        logs.info.length = 0;
+        const { core, writes, put, t } = mkc({ chargerWaitS: 60 });
+        put(CH, 200); core.regulate();
+        assert.strictEqual(writes.length, 0);
+        t.now += 59_000; put(METER('g1'), -1000); put(CH, 200); core.regulate();
+        assert.strictEqual(writes.length, 0);
+        t.now += 2_000; put(METER('g1'), -1000); put(CH, 200); core.regulate();
+        assert.strictEqual(writes.length, 2);
+        assert.ok(logs.info.some((m) => m.includes('Ladereserve')));
+    });
+    await test('Ladegeräte: Wartezeit 0 = unbegrenzt, Zähler setzt bei Unterschreitung zurück', () => {
+        const a = mkc({ chargerWaitS: 0 }); a.put(CH, 200); a.core.regulate();
+        a.t.now += 3_600_000; a.put(METER('g1'), -1000); a.put(CH, 200); a.core.regulate();
+        assert.strictEqual(a.writes.length, 0);
+        const b = mkc({ chargerWaitS: 60 }); b.put(CH, 200); b.core.regulate();
+        b.t.now += 50_000; b.put(METER('g1'), -700); b.core.regulate();      // unter Limit
+        b.t.now += 50_000; b.put(METER('g1'), -1000); b.put(CH, 200); b.core.regulate();
+        assert.strictEqual(b.writes.length, 0);
+    });
+    await test('Ladegeräte: mehrere Geräte summieren ihre Reserve', () => {
+        const CH2 = 'mqtt.0.T2MG-w2.ACSETPOINT';
+        const { core, writes, put } = mk({ chargersEnabled: true, chargerMaxAgeS: 0, chargers: [
+            { name: 't1', active: true, group: 'g1', powerId: CH, maxW: 300 },
+            { name: 't2', active: true, group: 'g1', powerId: CH2, maxW: 300 },
+        ] });
+        put(METER('g1'), -1300); put(CH, 150); put(CH2, 150); // Überschuss 500, Reserve 300 -> 200
+        core.regulate();
+        assert.strictEqual(writes.length, 2);
+        assert.strictEqual(core.chargeOf(core.cfg.groups[0]).reserveW, 300);
+    });
+
     await test('Export/Import: Rundlauf', () => {
-        const native = { ...DEFAULTS, socStart: 92, dryRun: true, groups: [{ group: 'a', active: true, limit: 700, limitFull: 250, meter: 'm', invert: true, inverters: 'WR1,WR2' }], configJson: 'alt' };
+        const native = { ...DEFAULTS, socStart: 92, dryRun: true, chargersEnabled: true, chargerWaitS: 90,
+            groups: [{ group: 'a', active: true, limit: 700, limitFull: 250, meter: 'm', invert: true, inverters: 'WR1,WR2' }],
+            chargers: [{ name: 't1', active: true, group: 'a', powerId: 'mqtt.0.x.ACSETPOINT', scale: 1, invert: false, maxW: 500, onlineId: '' }], configJson: 'alt' };
         const ex = exportConfig(native);
         const parsed = JSON.parse(ex.native.configJson);
         assert.strictEqual(parsed.adapter, 'netzlimit');
@@ -205,7 +319,11 @@ function mk(over = {}, groupOver = {}) {
         assert.strictEqual(im.error, undefined);
         assert.strictEqual(im.native.socStart, 92);
         assert.strictEqual(im.native.dryRun, true);
+        assert.strictEqual(im.native.chargersEnabled, true);
+        assert.strictEqual(im.native.chargerWaitS, 90);
+        assert.strictEqual(im.native.chargers.length, 1);
         assert.deepStrictEqual(im.native.groups, parsed.config.groups);
+        assert.deepStrictEqual(im.native.chargers, parsed.config.chargers);
         assert.strictEqual(im.native.configJson, '');
     });
     await test('Import: reines config-Objekt und Gruppenzeilen', () => {
@@ -221,6 +339,7 @@ function mk(over = {}, groupOver = {}) {
         assert.ok(importConfig('{"adapter":"shelly-gruppen","config":{}}').error);
         assert.ok(importConfig('{"version":9,"config":{}}').error);
         assert.ok(importConfig('{"config":{"groups":"x"}}').error);
+        assert.ok(importConfig('{"config":{"chargers":"x"}}').error);
         assert.ok(importConfig('{"config":{"socStart":50,"socEnd":60}}').error);
         assert.ok(importConfig('{"config":{"scale":0}}').error);
         assert.ok(importConfig('x'.repeat(200001)).error);

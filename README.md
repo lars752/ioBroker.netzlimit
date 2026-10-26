@@ -13,6 +13,24 @@ Dazu werden die Sollwerte der Wechselrichter einer Gruppe proportional zu ihrer 
 - **Hauptschalter** `netzlimit.0.Aktiv` und **Testlauf** (protokolliert nur, schreibt nichts) für die Inbetriebnahme.
 - Fehlerhafte Konfiguration: Der Adapter regelt nicht und meldet die Fehler im Log.
 
+## Akku-Ladegeräte berücksichtigen (optional)
+
+Im Reiter **„Ladegeräte“** lassen sich beliebig viele Akku-Ladegeräte (z. B. Trucki2MeanWell) eintragen und je einer Gruppe zuordnen. Ist die Funktion eingeschaltet, gilt:
+
+- **Freie Ladereserve wird angerechnet:** Lädt ein Gerät gerade (≥ Mindest-Ladeleistung) und liegt unter seiner Max. Ladeleistung, kann es zusätzlichen Überschuss aufnehmen. Diese Reserve (`Max. Ladeleistung − aktuelle Ladeleistung`, über alle Geräte der Gruppe summiert) wird vom Überschuss abgezogen. Die Wechselrichter werden nur für den Rest gedrosselt – so wird nicht abgeregelt, was der Akku noch hätte aufnehmen können.
+- **Sicherheitsgrenze:** Hält der Überschuss länger als die **Max. Wartezeit** (Standard 120 s) an, nimmt das Ladegerät ihn offensichtlich nicht auf – die Reserve wird ignoriert und normal geregelt. `0` = Reserve ohne Zeitgrenze.
+- **Kein gültiger Wert, keine Reserve:** Fehlt der Ladewert, ist er veraltet, das Gerät offline (optionaler Online-Datenpunkt) oder lädt es nicht, wird nichts angerechnet. Das Netzlimit verhält sich dann wie ohne Ladegeräte.
+- Ist der Akku voll, hört das Ladegerät auf zu laden – damit entfällt die Reserve automatisch und das Voll-Limit greift.
+
+| Einstellung | Standard | Bedeutung |
+|---|---|---|
+| Ladeverhalten berücksichtigen | aus | Hauptschalter der Funktion |
+| Mindest-Ladeleistung | 20 W | Ab hier gilt ein Gerät als ladend |
+| Max. Wartezeit | 120 s | So lange wird die Reserve angerechnet; 0 = unbegrenzt |
+| Max. Alter Ladewert | 120 s | 0 = nicht prüfen |
+
+**Tabelle „Ladegeräte“:** Name, Aktiv, Gruppe (Name aus der Gruppentabelle), Ladeleistung (Datenpunkt, z. B. `mqtt.0.T2MG816EB1-wohnung1.ACSETPOINT`), Skalierung (→ W), Invertieren, Max. Ladeleistung (W), Online-Datenpunkt (optional).
+
 ## Installation
 
 1. ioBroker Admin → Adapter → Experten-Modus → „Adapter aus eigener URL installieren":  
@@ -64,6 +82,9 @@ Dazu werden die Sollwerte der Wechselrichter einer Gruppe proportional zu ihrer 
 | `<gruppe>.Status` | Voll-Limit aktiv (und Gruppe aktiv) |
 | `<gruppe>.Zaehler_OK` | Zählerwert gültig, online und aktuell |
 | `<gruppe>.Letzte_Reduktion_W` | letzte Reduktion der Sollwerte |
+| `<gruppe>.Ladeleistung_W` | Summe der Ladeleistung (nur mit Ladegeräten) |
+| `<gruppe>.Ladereserve_W` | freie Ladeleistung, die Überschuss aufnehmen kann |
+| `Ladegeraete.<name>.Leistung_W` / `.OK` / `.Laedt` | Werte je Ladegerät |
 | `info.connection` | SoC und alle aktiven Zähler gültig |
 
 ## Import / Export der Konfiguration
@@ -87,6 +108,11 @@ Ungültige Gruppenzeilen, fehlerhaftes JSON oder der Export einer anderen Adapte
     "groups": [
       { "group": "<gruppe>", "active": true, "limit": 800, "limitFull": 300,
         "meter": "<zähler>", "invert": false, "inverters": "" }
+    ],
+    "chargersEnabled": true,
+    "chargers": [
+      { "name": "trucki1", "active": true, "group": "<gruppe>", "powerId": "<datenpunkt>",
+        "scale": 1, "invert": false, "maxW": 600, "onlineId": "" }
     ]
   }
 }

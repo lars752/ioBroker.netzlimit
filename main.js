@@ -16,6 +16,17 @@ const GROUP_STATES = [
     ['Letzte_Reduktion_W', 'Letzte Reduktion der Wechselrichter-Sollwerte', 'number', 'value.power', 'W', 0],
 ];
 
+const GROUP_CHARGE_STATES = [
+    ['Ladeleistung_W', 'Ladeleistung der Ladegeräte', 'number', 'value.power', 'W', 0],
+    ['Ladereserve_W', 'Freie Ladeleistung, die Überschuss aufnehmen kann', 'number', 'value.power', 'W', 0],
+];
+
+const CHARGER_STATES = [
+    ['Leistung_W', 'Gelesene Ladeleistung', 'number', 'value.power', 'W', 0],
+    ['OK', 'Wert verfügbar, online und aktuell', 'boolean', 'indicator.reachable', '', false],
+    ['Laedt', 'Lädt gerade (über Mindest-Ladeleistung)', 'boolean', 'indicator', '', false],
+];
+
 class Netzlimit extends utils.Adapter {
     constructor(options) {
         super({ ...options, name: 'netzlimit' });
@@ -42,18 +53,33 @@ class Netzlimit extends utils.Adapter {
         return this.queue;
     }
 
-    async ensureStructure(groups) {
+    async ensureStates(expected, prefix, label, list) {
+        for (const [id, name, type, role, unit, def] of list) {
+            const full = `${prefix}.${id}`;
+            expected.add(full);
+            const common = { name: `${label}: ${name}`, type, role, read: true, write: false, def };
+            if (unit) common.unit = unit;
+            await this.extendObjectAsync(full, { type: 'state', common, native: {} });
+            if (!(await this.getStateAsync(full))) await this.setStateAsync(full, { val: def, ack: true });
+        }
+    }
+
+    async ensureStructure(cfg) {
         const expected = new Set(KEEP);
-        for (const g of groups) {
+        for (const g of cfg.groups) {
             expected.add(g.group);
             await this.extendObjectAsync(g.group, { type: 'channel', common: { name: `Gruppe ${g.group}` }, native: {} });
-            for (const [id, name, type, role, unit, def] of GROUP_STATES) {
-                const full = `${g.group}.${id}`;
-                expected.add(full);
-                const common = { name: `${g.group}: ${name}`, type, role, read: true, write: false, def };
-                if (unit) common.unit = unit;
-                await this.extendObjectAsync(full, { type: 'state', common, native: {} });
-                if (!(await this.getStateAsync(full))) await this.setStateAsync(full, { val: def, ack: true });
+            await this.ensureStates(expected, g.group, g.group, cfg.chargersEnabled ? [...GROUP_STATES, ...GROUP_CHARGE_STATES] : GROUP_STATES);
+        }
+        const chargers = cfg.chargersEnabled ? cfg.chargers.filter((c) => c.active) : [];
+        if (chargers.length) {
+            expected.add('Ladegeraete');
+            await this.extendObjectAsync('Ladegeraete', { type: 'folder', common: { name: 'Akku-Ladegeräte' }, native: {} });
+            for (const c of chargers) {
+                const ch = `Ladegeraete.${c.name}`;
+                expected.add(ch);
+                await this.extendObjectAsync(ch, { type: 'channel', common: { name: `Ladegerät ${c.name} (Gruppe ${c.group})` }, native: {} });
+                await this.ensureStates(expected, ch, c.name, CHARGER_STATES);
             }
         }
         const all = await this.getAdapterObjectsAsync();
@@ -105,7 +131,11 @@ class Netzlimit extends utils.Adapter {
             this.log.error('Konfiguration fehlerhaft – es wird nicht geregelt. Bitte in der Instanz korrigieren');
             return;
         }
-        await this.ensureStructure(cfg.groups);
+        await this.ensureStructure(cfg);
+        if (cfg.chargersEnabled) {
+            const act = cfg.chargers.filter((c) => c.active);
+            this.log.info(`Ladegeräte berücksichtigen: ${act.map((c) => `${c.name} → ${c.group} (max. ${c.maxW} W)`).join(', ') || '(keine aktiven Ladegeräte)'}`);
+        }
         if (!cfg.groups.length) this.log.warn('Keine Gruppen konfiguriert – „Gruppen einlesen“ in der Instanz verwenden und Gruppen aktivieren');
         if (cfg.dryRun) this.log.warn('TESTLAUF aktiv: Es werden keine Sollwerte geschrieben');
 
@@ -152,6 +182,7 @@ class Netzlimit extends utils.Adapter {
         try {
             if (id === this.cfg.socId) this.core.evaluate();
             else if (this.core.isMeterId(id)) this.core.onMeter();
+            else if (this.core.isChargerId(id)) this.core.onCharger();
         } catch (e) {
             this.log.error(`Fehler bei ${id}: ${e.message}`);
         }
